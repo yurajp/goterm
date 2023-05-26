@@ -60,6 +60,9 @@ func ContactList() ([]Contact, error) {
   if err != nil {
     return []Contact{}, err
   }
+  if len(list) == 0 {
+    return []Contact{}, errors.New(" EMPTY CONTACTS")
+  }
   return list, nil
 }
 
@@ -90,7 +93,7 @@ func LastSms() (string, error) {
     return "", err
   }
   if len(list) == 0 {
-    return "", errors.New("Empty contacts")
+    return "", errors.New("No sms")
   }
   return list[0].Body, nil
 }
