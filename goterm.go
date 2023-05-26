@@ -6,6 +6,7 @@ import (
   "encoding/json"
   "errors"
   "strings"
+  "regexp"
 )
 
 type Auth struct {
@@ -100,13 +101,30 @@ func Copy(s string) {
   cmd.Run()
 }
 
-//Function copies last sms to clipboard displaying it in floating window.
+//Gets digital code from string
+func GetCode(sms string) string {
+  re := regexp.MustCompile(`\d{4,7}\.?`)
+  words := strings.Fields(sms)
+  for _, w := range words {
+    if re.MatchString(w) {
+      return strings.TrimRight(w, ".")
+    }
+  }
+  return ""
+}
+
+//Copies digital code from last sms to clipboard displaying sms in floating window.
 func CopySms() error {
   sms, err := LastSms()
   if err != nil {
     return err
   }
-  Copy(sms)
+  code := GetCode(sms)
+  if code == "" {
+    Copy(sms)
+  } else {
+    Copy(code)
+  }
   err = exec.Command("termux-toast", "-b", "black", sms).Run()
   if err != nil {
     return err
