@@ -178,7 +178,7 @@ func NavigatorLink() (string, error) {
   }
  // dl := "%2C"
  dl := ","
-  params := fmt.Sprintf("%s%s%s", pl.Latitude, dl, pl.Longitude)
+  params := fmt.Sprintf("%f%s%f", pl.Latitude, dl, pl.Longitude)
   return "https://maps.yandex.ru/?text=" + params, nil
 }
 
