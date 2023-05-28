@@ -54,7 +54,7 @@ func (p Place) String() string {
   if check(err) {
     return ""
   }
-  return fmt.Sprintf("Latitude: %s, longitude: %s, speed:  %d km/h", la, lo, sp)
+  return fmt.Sprintf("latitude: %s, longitude: %s, speed:  %d km/h", la, lo, sp)
 }
 
 func (p Place) Field(i int) (string, error) {
@@ -68,7 +68,7 @@ func (p Place) Field(i int) (string, error) {
     return fmt.Sprintf("%f", p.Longitude), nil
   }
   if i == 3 {
-    return fmt.Sprintf("%d", MtoKm(p.Speed)), nil
+    return fmt.Sprintf("%s", MtoKm(p.Speed)), nil
   }
   return "", nil
 }
