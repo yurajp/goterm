@@ -66,18 +66,17 @@ func ContactList() ([]Contact, error) {
   return list, nil
 }
 
-//Returns phone number of contact or returns error.
-func GetNumber(name string) (string, error) {
+func GetContact(name string) (Contact, error) {
   cnts, err := ContactList()
   if err != nil {
-    return "", err
+    return Contact{}, err
   }
   for _, cnt := range cnts {
     if strings.Contains( strings.ToLower(cnt.Name), strings.ToLower(name)) {
-      return cnt.Number, nil
+      return cnt, nil
     }
   }
-  return "", errors.New("Contact not found")
+  return Contact{}, errors.New("Contact not found")
 }
 
 //Returns text of last sms.
@@ -160,7 +159,7 @@ func Locate() error {
   la := p.Latitude
   lo := p.Longitude
   sp := p.Speed
-  dl := "%20"
+  dl := "%2C"
   url := fmt.Sprintf("https://google.com/maps?q=%f%s%f", la, dl, lo)
   err = OpenUrl(url)
   if err != nil {
@@ -170,6 +169,16 @@ func Locate() error {
     fmt.Printf("SPEED %s km/h", MtoKm(sp))
   }
   return nil
+}
+
+func NavigatorLink() (string, error) {
+  pl, err := GetLocation()
+  if err != nil {
+    return "", err
+  }
+  dl := `%2C`
+  params := fmt.Sprintf("%s%s%s", pl.Latitude, dl, pl.Longitude)
+  return "https://yandex.ru/maps/?rtext=~" + params, nil
 }
 
 //Transcribes m/sec to km/hour.
@@ -221,14 +230,10 @@ func OpenUrl(url string) error {
   return nil
 }
 
-//Function searhes phone number for contact name and makes call. If unsuccess returns error.
-func Call(name string) error {
-  number, err := GetNumber(name)
-  if err != nil {
-    return err
-  }
-  cmd := exec.Command("termux-telephony-call", number)
-  err = cmd.Run()
+//Function calls to contact.
+func Call(cnt Contact) error {
+  cmd := exec.Command("termux-telephony-call", cnt.Number)
+  err := cmd.Run()
   if err != nil {
     return err
   }
