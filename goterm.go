@@ -176,9 +176,10 @@ func NavigatorLink() (string, error) {
   if err != nil {
     return "", err
   }
-  dl := `%2C`
+ // dl := "%2C"
+ dl := ","
   params := fmt.Sprintf("%s%s%s", pl.Latitude, dl, pl.Longitude)
-  return "https://yandex.ru/maps/?rtext=~" + params, nil
+  return "https://maps.yandex.ru/?text=" + params, nil
 }
 
 //Transcribes m/sec to km/hour.
