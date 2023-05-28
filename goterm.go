@@ -33,6 +33,46 @@ type Place struct {
   Speed float64
 }
 
+func check(e error) bool {
+  if e != nil {
+    fmt.Println(e)
+    return true
+  }
+  return false
+}
+
+func (p Place) String() string {
+  la, err := p.Field(1)
+  if check(err) {
+    return ""
+  }
+  lo, err := p.Field(2)
+  if check(err) {
+    return ""
+  }
+  sp, err := p.Field(3)
+  if check(err) {
+    return ""
+  }
+  return fmt.Sprintf("Latitude: %s, longitude: %s, speed:  %d km/h", la, lo, sp)
+}
+
+func (p Place) Field(i int) (string, error) {
+  if i == 0 || i > 3 {
+    return "", errors.New("Args should be 1 || 2 || 3")
+  }
+  if i == 1 {
+    return fmt.Sprintf("%f", p.Latitude), nil
+  }
+  if i == 2 {
+    return fmt.Sprintf("%f", p.Longitude), nil
+  }
+  if i == 3 {
+    return fmt.Sprintf("%d", MtoKm(p.Speed)), nil
+  }
+  return "", nil
+}
+
 type Sms struct {
   Idth int `json:"threadid"`
   Type string `json:"type"`
@@ -134,6 +174,15 @@ func CopySms() error {
   return nil
 }
 
+func SendSms(cnt Contact, txt string) error {
+  cmd := exec.Command("termux-sms-send", "-n", cnt.Number, txt)
+  err := cmd.Run()
+  if err != nil {
+    return err
+  }
+  return nil
+}
+
 //Function returns coordinates or returns error
 func GetLocation() (Place, error) {
   cmd := exec.Command("termux-location", "-p", "network")
@@ -172,13 +221,20 @@ func Locate() error {
 }
 
 func NavigatorLink() (string, error) {
-  pl, err := GetLocation()
+  p, err := GetLocation()
   if err != nil {
     return "", err
   }
- // dl := "%2C"
- dl := ","
-  params := fmt.Sprintf("%f%s%f", pl.Latitude, dl, pl.Longitude)
+  la, err := p.Field(1)
+  if check(err) {
+    return "", err
+  }
+  lo, err := p.Field(2)
+  if check(err) {
+    return "", err
+  }
+  dl := ","
+  params := fmt.Sprintf("%s%s%s", la, dl, lo)
   return "https://maps.yandex.ru/?text=" + params, nil
 }
 
