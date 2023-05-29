@@ -7,6 +7,7 @@ import (
   "errors"
   "strings"
   "regexp"
+  "net/url"
 )
 
 type Auth struct {
@@ -309,3 +310,14 @@ func Speech() (string, error) {
   }
   return string(text), nil
 }
+
+func WaSend(cnt Contact, message string) error {
+  phone := cnt.Number
+  if strings.HasPrefix(phone, "8") {
+    phone = strings.Replace(phone, "8", "7", 1)
+  }
+  text := url.QueryEscape(message)
+  lnk := fmt.Sprintf("https://api.whatsapp.com/send?phone=%s&text=%s", phone, text)
+  return OpenUrl(lnk)
+}
+  
