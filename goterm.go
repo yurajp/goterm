@@ -1,6 +1,7 @@
 package goterm
 
 import (
+  "os"
   "os/exec"
   "fmt"
   "encoding/json"
@@ -8,7 +9,10 @@ import (
   "strings"
   "regexp"
   "net/url"
+  "io/ioutil"
 )
+
+var recPath = "/storage/emulated/0/recording"
 
 type Auth struct {
   Errors []string `json:"errors"`
@@ -321,3 +325,40 @@ func WaSend(cnt Contact, message string) error {
   return OpenUrl(lnk)
 }
   
+func HandleRecord(recDir string) error {
+  lst, err := ioutil.ReadDir(recDir)
+  if err != nil {
+    return err
+  }
+  i := len(lst)
+  var newname string
+  for {
+    num := fmt.Sprintf("%02d", i +1)
+    newname = recDir + "/rec-" + num + ".m4a"
+    if _, err = os.Stat(newname); err != nil {
+      if os.IsNotExist(err) {
+        break
+      }
+    }
+    i++
+  }
+  err = os.Rename(recPath, newname)
+  if err != nil {
+    return fmt.Errorf("Moving: %s", err)
+  }
+  return nil
+}
+
+func Record(dir string) error {
+  cmd := exec.Command("termux-microphone-record", "-d", "-f", recPath)
+  err := cmd.Run()
+  if err != nil {
+    return err
+  }
+  fmt.Println("\trecording...")
+  var q string
+  fmt.Scanf("%s", &q)
+  exec.Command("termux-microphone-record", "-q").Run()
+  return HandleRecord(dir)
+}
+
