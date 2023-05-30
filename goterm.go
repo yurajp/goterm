@@ -356,9 +356,22 @@ func Record(dir string) error {
     return err
   }
   fmt.Println("\trecording...")
+  fmt.Println("\tEnter to stop")
   var q string
   fmt.Scanf("%s", &q)
   exec.Command("termux-microphone-record", "-q").Run()
   return HandleRecord(dir)
 }
 
+func Play(p string) error {
+  cmd := exec.Command("termux-media-player", "play", p)
+  err := cmd.Run()
+  if err != nil {
+    return err
+  }
+  fmt.Println("\tplaying...")
+  fmt.Println("\tEnter to stop")
+  var s string
+  fmt.Scanf("%s", &s)
+  return exec.Command("termux-media-player", "stop").Run()
+}
