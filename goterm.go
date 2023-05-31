@@ -25,6 +25,23 @@ type Dialog struct {
   Text string `json:"text"`
 }
 
+type DialogT struct {
+  Code int `json:"code"`
+  Text string `json:"text"`
+  Index int `json:"index"`
+}
+
+type Value struct {
+  Index int `json:"index"`
+  Text string `json:"text"`
+}
+
+type DialogM struct {
+  Code int `json:"code"`
+  Text string `json:"text"`
+  Values []Value `json:"values"`
+}
+
 type Location struct {
   Latitude float64 `json:"latitude"`
   Longitude float64 `json:"longitude"`
@@ -99,16 +116,19 @@ type Contact struct {
 }
 
 //Returns user text
-func UserText() (string, error) {
-  cmd := exec.Command("termux-dialog")
+func UserText(t string) (string, error) {
+  cmd := exec.Command("termux-dialog", "-m", "-t", t)
   out, err := cmd.Output()
   if err != nil {
     return "", err
   }
-  var dlg Dialog
+  var dlg DialogT
   err = json.Unmarshal(out, &dlg)
   if err != nil {
     return "", err
+  }
+  if dlg.Code != -1 {
+    return "", errors.New("Canceled")
   }
   return dlg.Text, nil
 }
@@ -136,12 +156,24 @@ func GetContact(name string) (Contact, error) {
   if err != nil {
     return Contact{}, err
   }
+  matches := []Contact{}
   for _, cnt := range cnts {
     if strings.Contains( strings.ToLower(cnt.Name), strings.ToLower(name)) {
-      return cnt, nil
+      matches = append(matches, cnt)
     }
   }
-  return Contact{}, errors.New("Contact not found")
+  if len(matches) == 0 {
+    return Contact{}, errors.New("Contact not found")
+  }
+  names := []string{}
+  for _, c := range matches {
+    names = append(names, c.Name)
+  }
+  _, idx, err := Radio(names)
+  if err != nil {
+    return Contact{}, err
+  }
+  return matches[idx], nil
 }
 
 //Returns text of last sms.
@@ -398,3 +430,46 @@ func Play(p string) error {
   return exec.Command("termux-media-player", "stop").Run()
 }
 
+func Radio(sl []string) (string, int, error) {
+  t := "  SELECT"
+  v := strings.Join(sl, ",")
+  cmd := exec.Command("termux-dialog", "radio", "-t", t, "-v", v)
+  out, err := cmd.Output()
+  if err!= nil {
+    return "", 0, err
+  }
+  var rad DialogT
+  err = json.Unmarshal(out, &rad)
+  if err != nil {
+    return "", 0, err
+  }
+  if rad.Code != -1 {
+    return "", 0, errors.New("Cannot select")
+  }
+  return rad.Text, rad.Index, nil
+}
+
+func Checkbox(sl []string) ([]string, []int, error) {
+  t := "  SELECT"
+  v := strings.Join(sl, ",")
+  cmd := exec.Command("termux-dialog", "checkbox", "-t", t, "-v", v)
+  out, err := cmd.Output()
+  if err!= nil {
+    return []string{}, []int{}, err
+  }
+  var cbx DialogM
+  err = json.Unmarshal(out, &cbx)
+  if err != nil {
+    return []string{}, []int{}, err
+  }
+  if cbx.Code != -1 {
+    return []string{}, []int{}, errors.New("Cannot select")
+  }
+  vals := []string{}
+  idxs := []int{}
+  for _, v := range cbx.Values {
+    vals = append(vals, v.Text)
+    idxs = append(idxs, v.Index)
+  }
+  return vals, idxs, nil
+}
