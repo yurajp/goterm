@@ -20,6 +20,11 @@ type Auth struct {
   Result string `json:"auth_result"`
 }
 
+type Dialog struct {
+  Code int `json:"code"`
+  Text string `json:"text"`
+}
+
 type Location struct {
   Latitude float64 `json:"latitude"`
   Longitude float64 `json:"longitude"`
@@ -91,6 +96,21 @@ type Sms struct {
 type Contact struct {
    Name string `json:"name"`
    Number string `json:"number"`
+}
+
+//Returns user text
+func UserText() (string, error) {
+  cmd := exec.Command("termux-dialog")
+  out, err := cmd.Output()
+  if err != nil {
+    return "", err
+  }
+  var dlg Dialog
+  err = json.Unmarshal(out, &dlg)
+  if err != nil {
+    return "", err
+  }
+  return dlg.Text, nil
 }
 
 //Returns list of contacts on the phone.1
