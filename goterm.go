@@ -369,9 +369,12 @@ func Play(p string) error {
   if err != nil {
     return err
   }
-  fmt.Println("\tplaying...")
+  trp := strings.Split(p, "/")
+  tr := trp[len(trp) - 1]
+  fmt.Println("\tplaying ", tr)
   fmt.Println("\tEnter to stop")
   var s string
   fmt.Scanf("%s", &s)
   return exec.Command("termux-media-player", "stop").Run()
 }
+
