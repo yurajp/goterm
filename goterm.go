@@ -10,6 +10,7 @@ import (
   "regexp"
   "net/url"
   "io/ioutil"
+  "time"
 )
 
 var recPath = "/storage/emulated/0/recording"
@@ -115,9 +116,59 @@ type Contact struct {
    Number string `json:"number"`
 }
 
+//Displays error in floating window.
+func ToastErr(err error) {
+  s := fmt.Sprintf("%s", err)
+  exec.Command("termux-toast", "-b", "red", s).Run()
+}
+
+func Notification(txt string) {
+  exec.Command("termux-notification", "--id", "termapp", "--ongoing", "-c", txt).Run()
+}
+
+func Vibrate() {
+  exec.Command("termux-vibrate").Run()
+}
+
+func Confirm() bool {
+  cmd := exec.Command("termux-confirm")
+  var dlg Dialog
+  out, _ := cmd.Output()
+  json.Unmarshal(out, &dlg)
+  return dlg.Text == "yes"
+}
+
+func TimeName() string {
+  return time.Now().Format("060102-150405")
+}
+
+func Photo(p string) error {
+  cmd := exec.Command("termux-camera-photo", p)
+  err := cmd.Run()
+  if err != nil {
+    return err
+  }
+  return nil
+}
+
+//Returns user short text
+func UserName() (string, error) {
+  cmd := exec.Command("termux-dialog", "-t", "  NAME")
+  out, err := cmd.Output()
+  if err != nil {
+    return "", err
+  }
+  var dlg Dialog
+  err = json.Unmarshal(out, &dlg)
+  if err != nil {
+    return "", err
+  }
+  return dlg.Text, nil
+}
+
 //Returns user text
-func UserText(t string) (string, error) {
-  cmd := exec.Command("termux-dialog", "-m", "-t", t)
+func UserText() (string, error) {
+  cmd := exec.Command("termux-dialog", "-m", "-t", "  TEXT")
   out, err := cmd.Output()
   if err != nil {
     return "", err
