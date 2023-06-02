@@ -216,6 +216,9 @@ func GetContact(name string) (Contact, error) {
   if len(matches) == 0 {
     return Contact{}, errors.New("Contact not found")
   }
+  if len(matches) == 1 {
+    return matches[0], nil
+  }
   names := []string{}
   for _, c := range matches {
     names = append(names, c.Name)
@@ -377,7 +380,7 @@ func Speak(text string) error {
   if len(text) == 0 {
     return errors.New("Nothing to speak")
   }
-  cmd := exec.Command("termux-tts-speak", text)
+  cmd := exec.Command("termux-tts-speak", "-r", "0.9", "-p", "0.9", text)
   err := cmd.Run()
   if err != nil {
     return err
