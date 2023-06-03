@@ -203,6 +203,9 @@ func ContactList() ([]Contact, error) {
 }
 
 func GetContact(name string) (Contact, error) {
+  if name == "" {
+    return Contact{}, errors.New("No Name")
+  }
   cnts, err := ContactList()
   if err != nil {
     return Contact{}, err
