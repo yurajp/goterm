@@ -122,8 +122,14 @@ func ToastErr(err error) {
   exec.Command("termux-toast", "-b", "red", s).Run()
 }
 
+func ToastText(txt string) {
+  exec.Command("termux-toast", "-c", "black", "-b", "orange", txt).Run()
+}
+
 func Notification(txt string) {
-  exec.Command("termux-notification", "--id", "termapp", "--ongoing", "-c", txt).Run()
+  txt = strings.Replace(txt, "\n", " ", -1)
+  action := "echo "+ txt + "|termux-clipboard-set"
+  exec.Command("termux-notification", "--action", action, "-t", "TERMAPP", "-c", txt).Run()
 }
 
 func Vibrate() {
